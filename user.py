@@ -1,26 +1,33 @@
-
-
+from validator_collection import checkers
 
 
 class User:
-    def __init__(self, name,address):
-        self.name = name
-        self.address = address
 
-    def __str__(self):
-        return f"Username:{self.name} User address:{self.address}"
+    def __init__(self):
+        user_type = input(print("1.Login",\n,"2.Regiser")).casefold()
+        if "1" == user_type == "login":
+            self.user = self.user_logins()
+
+        elif "2" == user_type == "register":
+            self.user = self.user_registration()
+        else:
+            print("Usage: input")
+
+    def user_registration(self):
+        self.name = input_name()
+        self.email = input_loop("Email: ")
+        password = input_loop("Password: ")
+
+
+    def input_name():
+        while true:
+            name = input("Name: ")
+            if name:
+                return name
     
-    @classmethod
-    def get(cls):
-        name = input("Input your name: ")
-        address = input("Where do you live: ")
-
-        return cls(name, address)
+    def input_email:
+        while true:
+            if checkers.is_email(input("Email: "):
+                return email
 
 
-def main():
-    user = User.get()
-    print(user)
-
-if __name__ == "__main__":
-    main()
