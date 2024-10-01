@@ -1,8 +1,8 @@
 from user import User
-from bus import Bus
+#from bus import Bus
 
 
 
 def main():
     user = User()
-    
+    user.usertype()    

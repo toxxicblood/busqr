@@ -4,11 +4,11 @@ import password
 class User:
 
     def __init__(self):
-        user_type = input(print("1.Login",\n,"2.Regiser")).casefold()
-        if "1" == user_type == "login":
+        self.user_type = input(print("1.Login","2.Regiser")).casefold()
+        if "1" == self.user_type == "login":
             self.user = self.user_logins()
 
-        elif "2" == user_type == "register":
+        elif "2" == self.user_type == "register":
             self.user = self.user_registration()
         else:
             print("Usage: input")
@@ -25,7 +25,7 @@ class User:
             if name:
                 return name
     
-    def input_email:
+    def input_email():
         while true:
             email = input("Email: ")
             if checkers.is_email(email):
