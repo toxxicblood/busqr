@@ -1,10 +1,7 @@
 from user import User
+import pytest
+
 
 def test_init():
-    user = User("Ramsey", "Ngong")
-    assert user.name == "Ramsey"
-    assert user.address == "Ngong"
+    user = User()
 
-def test_str():
-    user = User("ramsey", "ngong")
-    assert str(user) == "Username:ramsey User address:ngong"

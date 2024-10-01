@@ -3,4 +3,6 @@ from bus import Bus
 
 
 
-def main()
+def main():
+    user = User()
+    

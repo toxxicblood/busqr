@@ -1,5 +1,5 @@
 from validator_collection import checkers
-
+import password
 
 class User:
 
@@ -15,8 +15,8 @@ class User:
 
     def user_registration(self):
         self.name = input_name()
-        self.email = input_loop("Email: ")
-        password = input_loop("Password: ")
+        self.email = input_email()
+        self.password = input_password()
 
 
     def input_name():
@@ -27,7 +27,11 @@ class User:
     
     def input_email:
         while true:
-            if checkers.is_email(input("Email: "):
+            email = input("Email: ")
+            if checkers.is_email(email):
                 return email
-
+    
+    def input_password():
+        password = input("Password: ")
+        password = password.Password(method='sha1', hash_encoding='base64')
 
