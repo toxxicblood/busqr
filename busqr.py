@@ -5,4 +5,7 @@ from user import User
 
 def main():
     user = User()
-    user.usertype()    
+    
+
+if __name__ == "__main__":
+    main()
