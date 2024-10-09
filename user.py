@@ -2,6 +2,8 @@ from validator_collection import checkers
 import os
 from cryptography.fernet import Fernet
 import csv
+from cryptography.hazmat.primitives import constant_time
+
 
 
 
@@ -59,8 +61,11 @@ class User:
         self.passwordtoken = fernet.encrypt(self.password)
         self.add_user()
 
-    def decrypt_data(self):
+    def decrypt_data(self, token):
         #this function decrypts data in the csv to authenticate user logins
+        fernet = self.fernet
+        return fernet.decrypt(token)
+
 
     def add_user(self):
         #here we add users to a csv file to help with local authentication 
@@ -77,11 +82,23 @@ class User:
         with open(csv_file_path, mode='a', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=header)
             writer.writerow({"username": self.usertoken, "email":self.emailtoken, "password"=self.passwordtoken, "userID": self._UID
-
+        
+        self.user_login()
 
     def validate_credentials(self):
         #import the users csv or check api
+        user_data = {}
+        with open("Users.csv") as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                decrypted_username = decrypt_data(row['username'])
+                user_data[decrypted_username] = row
+
         #check if usrname in csv
+        user = user_data.get(self.user)
+        if user:
+            user_password = decrypt_data(user[password])
+            
         #pick usrid to do all other functions
 
 
