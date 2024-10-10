@@ -3,6 +3,7 @@ import os
 from cryptography.fernet import Fernet
 import csv
 from cryptography.hazmat.primitives import constant_time
+import json
 
 
 
@@ -83,7 +84,7 @@ class User:
         self.name = self.input_name()
         self.password = self.input_password()
         self.valid_user = self.validate_credentials()
-        User_Account(self.valid_user)
+        User_Account()
 
     def validate_credentials(self):
         #import the users csv or check api
@@ -112,22 +113,42 @@ class User:
         
 
 
-class User_Account(userid):
-    def __init__(self,userid):
-        #pass in the user id
+class User_Account:
+    def __init__(self, filename= 'accounts.json'):
+        self.filename= filename
+        self.accounts = self.load_accounts()
+
+
+    def load_accounts(self):
+        try:
+            with open(self.filename) as f:
+                return json.load(f)
         
-        def deposit():
-        
-        def withdraw():
+        except (FileNotFoundError, json.JSONDecondeError):
+            return{}
 
-        def pay():
+    def save_accounts(self): 
+        with open(self.filenae, 'w') as f:
+            json.dump(self.accounts, f)
 
-        def balance():
-
-        def transactions():
-            #open a txt file for all usrs transactions.
-            #identified through uid
             
+    def add_account(self, uid, account):
+        if uid in self.accounts:
+            raise ValueError(f "account for {uid} allready exist)
+        self.accounts[uid] = account
+        self.save_accounts()
+
+
+    def get_accounts(self, uid):
+        return self.accounts.get(uid, None)
+
+
+    def remove_accounts(self, uid):
+        if uid in self.accounts:
+            del self.accounts[uid]
+            self.save_accounts()
+        else:
+            raise ValueError(f"No account found for {uid})
 
 
 
