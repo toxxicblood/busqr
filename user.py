@@ -6,7 +6,6 @@ from cryptography.hazmat.primitives import constant_time
 
 
 
-
 class User:
 
     def __init__(self):
@@ -26,12 +25,6 @@ class User:
         self.password = self.input_password()
         self._UID = self.UID_generator()
         self.encrypt_data()
-
-    def user_logins():
-        self.name = self.input_name()
-        self.password = self.input_password()
-        self.valid_user = self.validate_credentials()
-
 
     def input_name(self):
         while True:
@@ -81,9 +74,16 @@ class User:
         #appending to the csv file using dicts
         with open(csv_file_path, mode='a', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=header)
-            writer.writerow({"username": self.usertoken, "email":self.emailtoken, "password"=self.passwordtoken, "userID": self._UID
+            writer.writerow({"username": self.usertoken, "email":self.emailtoken, "password"=self.passwordtoken, "userID": self._UID})
         
         self.user_login()
+
+
+    def user_login():
+        self.name = self.input_name()
+        self.password = self.input_password()
+        self.valid_user = self.validate_credentials()
+        User_Account(self.valid_user)
 
     def validate_credentials(self):
         #import the users csv or check api
@@ -98,7 +98,10 @@ class User:
         user = user_data.get(self.user)
         if user:
             user_password = decrypt_data(user[password])
-            
+            if constant_time.bytes_eq(self.password, user_password):
+                user_id = decrypt_data(row['userID'])
+                return user_id
+
         #pick usrid to do all other functions
 
 
@@ -109,8 +112,8 @@ class User:
         
 
 
-class User_Account():
-    def __init__(self,uid):
+class User_Account(userid):
+    def __init__(self,userid):
         #pass in the user id
         
         def deposit():
