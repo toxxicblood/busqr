@@ -85,7 +85,7 @@ class User:
         self.password = self.input_password()
         self.valid_user = self.validate_credentials()
         User_Account()
-
+        
     def validate_credentials(self):
         #import the users csv or check api
         user_data = {}
