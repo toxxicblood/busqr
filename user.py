@@ -132,23 +132,61 @@ class User_Account:
             json.dump(self.accounts, f)
 
             
-    def add_account(self, uid, account):
+    def add_account(self, uid, balance=0):
         if uid in self.accounts:
-            raise ValueError(f "account for {uid} allready exist)
-        self.accounts[uid] = account
-        self.save_accounts()
-
-
-    def get_accounts(self, uid):
-        return self.accounts.get(uid, None)
+            raise ValueError(f "account for {uid} allready exists")
+        else:
+            self.accounts[uid] = balance
+            self.save_accounts()
 
 
     def remove_accounts(self, uid):
         if uid in self.accounts:
-            del self.accounts[uid]
-            self.save_accounts()
+            if self.accounts[uid] > 0:
+                raise BalanceError("withdraw balance first to close account")
+            else:
+                del self.accounts[uid]
+                self.save_accounts()
         else:
-            raise ValueError(f"No account found for {uid})
+            raise ValueError(f"No account found for {uid}")
 
+
+
+    def get_balance(self, uid):
+        return self.accounts.get(uid, None)
+
+
+    def update_balance(self, uid, new_balance):
+        #update balance for an existing usr
+        if uid in self.accounts:
+            self.accounts[uid] = new_balance
+        else:
+            print(f"Uid:{uid} not found, cannot update balance")
+
+    def deposit(self, uid, ammount):
+        #deposit a positive ammt into the users acct
+        if uid in self.accounts:
+            if ammount > 0:
+                self.accounts[user_id] += ammount
+                print(f"ammount:{ammount} deposited to account successfully. New balance: {self.accont[uid]}")
+            else: 
+                print("invalid deposit")
+        else:
+            print("uid not found")
+
+
+    def withdraw(self,uid,ammount):
+        if uid in self.accounts:
+            if ammount > 0:
+                if self.accounts[uid] >= ammount:
+                    self.accounts[uid] -= ammount
+                    print(f"ammt{ammount} withdrawn. balance {self.accounts[uid]}")
+                else:
+                    print(f"insufficient bal")
+
+            else:
+                print("invalid withdrawal ammount")
+        else:
+            print("uid not found")
 
 
