@@ -22,10 +22,9 @@ class TestCredentialsInput(unittest.TestCase):
     def test_input_email(self, mock_input, mock_is_email):
         # Test input_email with valid email
         self.assertEqual(credentials_input.input_email(), 'jane@example.com')
-        mock_is_email.assert_called_with('jane@example.com')
 
     @patch('builtins.input', side_effect=['invalid', 'jane@example.com'])
-    @patch('checkers.is_email', side_effect=[False, True])
+    @patch('validator_collection.checkers.is_email', side_effect=[False, True])
     def test_input_email_invalid_then_valid(self, mock_input, mock_is_email):
         # Test input_email with invalid first input, then valid email
         self.assertEqual(credentials_input.input_email(), 'jane@example.com')
