@@ -6,7 +6,7 @@ import os
 import csv
 from cryptography.hazmat.primitives import constant_time
 import shortuuid
-
+import crypt_data
 
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
@@ -50,53 +50,83 @@ class App(ctk.CTk):
 
 
     def  login(self):
-        self.welcome_label.configure(text='Please enter your details to log in')
-        self.login_button.destroy()
-        self.register_button.destroy()
-        self.back_button.configure(command = self.launch_user)
+        self.clear_page()
+        self.name_entry.configure(placeholder_text="Username/Email:")
+        self.password_entry.configure("Account passowrd:")
+        
+
+
 
     def register(self):
         self.welcome_label.configure(text="please enter the following details to sign up")
-        self.login_button.destroy()
-        self.register_button.destroy()
-        self.back_button.configure(command=self.launch_user)
+        
         self.data_input()
 
         #self.name_label= ctk.CTkLabel(self, text='input email:')
         #self.name_label.grid(row=0, column=0, padx=10, pady=10)
     def data_input(self):
-        self.name_entry = ctk.CTkEntry(self, placeholder_text= "Name:")
-        self.name_entry.grid(row=0, column=0, padx=10, pady=10)
+        self.clear_page()
+        self.name_entry = ctk.CTkEntry(self, placeholder_text= "Name:", corner_radius=10)
+        self.name_entry.grid(row=1, column=0, padx=10, pady=10)
 
-        self.email_entry = ctk.CTkEntry(self, placeholder_text= "Email:")
-        self.email_entry.grid(row=1, column=0, padx=10, pady=10)
+        self.email_entry = ctk.CTkEntry(self, placeholder_text= "Email:", corner_radius=10)
+        self.email_entry.grid(row=2, column=0, padx=10, pady=10)
 
-        self.password_entry = ctk.CTkEntry(self, placeholder_text= "Password:")
-        self.password_entry.grid(row=2, column=0, padx=10, pady=10)
+        self.password_entry = ctk.CTkEntry(self, placeholder_text= "Password:",corner_radius=10)
+        self.password_entry.grid(row=3, column=0, padx=10, pady=10)
 
         self.submit_button =ctk.CTkButton(self, text= 'Submit', command = self.verify_inputs)
-        self.submit_button.grid(row=3, column=0, pady=15)
+        self.submit_button.grid(row=4, column=0, pady=15)
 
-    def verify_inputs(self):#to do
+        self.back_button = ctk.CTkButton(self, text = 'Back', command = self.startapp)
+        self.back_button.grid(row=2, column=0, pady=20)
+
+    def verify_inputs(self):#this function checks the inputted data and 
         #check if user has inputted a name
         if not self.name_entry.get():
+            self.name_entry.configure(placeholder_text_color='#F31604',
+                                      fg_color=('#F61B09','#383838'))
             raise ValueError("input name")
+    
 
         
         #check if user has inputted an email and verify email
-        if not self.email_entry.get():
+        if not self.email_entry.get():        
+            self.email_entry.configure(placeholder_text_color='#F31604',
+                                       fg_color=('#F61B09','#383838'))
             raise ValueError("input email")
 
         elif not checkers.is_email(self.email_entry.get()):
+            
+            self.email_entry.configure(text_color = '#F31604',
+                                    placeholder_text_color='#F31604',
+                                    fg_color=('#F61B09','#383838'))
             raise ValueError("input a correct email")
 
         #check the inputted passwords 
         if not self.password_entry.get():
+            self.password_entry.configure(placeholder_text_color='#F31604',
+                                          fg_color=('#F61B09','#383838'))
             raise ValueError("input a password")
 
         self.clear_page()
-        self.confirm_registration = ctk.CTkButton(self, text = 'confirm registration', command = self.add_user)
+        self.confirm_registration = ctk.CTkButton(self, text = 'confirm registration', command = self.encryptor)
         self.confirm_registration.pack(pady = 20)
+
+        self.back_button = ctk.CTkButton(self,text='Back',command=self.data_input)
+        self.back_button.pack(pady=20)
+
+
+    def encryptor(self):
+        self.crypt = crypt_data()
+        self.nametoken = self.crypt.encrypt(self.name_entry.get())
+        self.emailtoken = self.crypt.encrypt(self.email_entry.get())
+        self.passwordtoken = self.crypt.encrypt(self.password_entry.get())
+        self.uidtoken = self.crypt.encrypt(shortuuid.uuid(length=10))
+        self.add_user()
+
+    def decryptor(self):
+        pass
 
 
     def add_user(self):#to do
@@ -115,10 +145,10 @@ class App(ctk.CTk):
             writer = csv.DictWriter(file, fieldnames=header)
             writer.writerow(
                 {
-                    "username": self.usertoken,
+                    "username": self.nametoken,
                     "email": self.emailtoken,
                     "password": self.passwordtoken,
-                    "userID": self._UID,
+                    "userID": self.uidtoken,
                 }
             )
 
