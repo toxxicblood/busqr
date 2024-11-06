@@ -203,26 +203,23 @@ class App(ctk.CTk):
         self.success_label = ctk.CTkLabel(self, text='Login successful')
         self.success_label.pack(pady=20)
 
-        self.hello_user = ctk.CTkLabel(self, text = f'Hello {self.username}')
+        self.hello_user = ctk.CTkLabel(self, text=f'Hello {self.username}')
         self.hello_user.pack(pady=10)
 
         self.usr_acct = user_account.User_Account(self.user_id)
         self.usr_acct.add_account()
 
-        self.balance = ctk.CTkLabel(self, text =f"Balance:{self.usr_acct.get_balance()}")
+        self.balance = ctk.CTkLabel(self, text=f"Balance: {self.usr_acct.get_balance()}")
         self.balance.pack(pady=10)
-        
-        self.deposit = ctk.CTkButton(self, text="Deposit", command =self.depositor)
+
+        self.deposit = ctk.CTkButton(self, text="Deposit", command=self.depositor)
         self.deposit.pack(pady=10)
 
-        self.withdraw = ctk.CTkButton(self, text="Withdraw", command =self.withdrawer)
+        self.withdraw = ctk.CTkButton(self, text="Withdraw", command=self.withdrawer)
         self.withdraw.pack(pady=10)
 
-
-        self.remove_acct = ctk.CTkButton(self, text =  'Remove Account', command=self.usr_acct.remove_accounts())
+        self.remove_acct = ctk.CTkButton(self, text='Remove Account', command=self.usr_acct.remove_account)
         self.remove_acct.pack(pady=10)
-
-
 
         self.logout_button = ctk.CTkButton(self, text='Logout', command=self.login)
         self.logout_button.pack(pady=20)
@@ -231,31 +228,46 @@ class App(ctk.CTk):
 
     def depositor(self):
         self.clear_page()
-        self.input_ammount = ctk.CTkEntry(self, placeholder_text="Enter Ammount:",corner_radius=10 )
-        self.input_ammount.pack(pady=10)
+        self.input_amount = ctk.CTkEntry(self, placeholder_text="Enter Amount:", corner_radius=10)
+        self.input_amount.pack(pady=10)
 
-        self.submit_button = ctk.CTkEntry(self, text ='Submit', 
-                                          command = self.usr_acct.deposit(self.input_ammount.get().strip()))
+        def submit_deposit():
+            amount = self.input_amount.get().strip()
+            if amount.isnumeric():  # Simple validation
+                self.usr_acct.deposit(float(amount))
+                self.Accounts()
+               # self.balance.configure(text=f"Balance: {self.usr_acct.get_balance()}")
+            else:
+                print("Invalid input: Please enter a numeric value for the deposit.")
+
+            
+
+        self.submit_button = ctk.CTkButton(self, text='Submit', command=submit_deposit)
         self.submit_button.pack(pady=10)
 
-        self.back_button = ctk.CTkEntry(self, text="Back", command = self.Accounts())
+        self.back_button = ctk.CTkButton(self, text="Back", command=self.Accounts)
         self.back_button.pack(pady=10)
-
 
     def withdrawer(self):
         self.clear_page()
 
-        self.input_ammount = ctk.CTkEntry(self, placeholder_text="Enter Ammount:",corner_radius=10 )
-        self.input_ammount.pack(pady=10)
+        self.input_amount = ctk.CTkEntry(self, placeholder_text="Enter Amount:", corner_radius=10)
+        self.input_amount.pack(pady=10)
 
-        self.submit_button = ctk.CTkEntry(self, text ='Submit', 
-                                          command = self.usr_acct.withdraw(self.input_ammount.get().strip()))
+        def submit_withdraw():
+            amount = self.input_amount.get().strip()
+            if amount.isnumeric():  # Simple validation
+                self.usr_acct.withdraw(float(amount))
+                self.Accounts()
+                #self.balance.configure(text=f"Balance: {self.usr_acct.get_balance()}")
+            else:
+                print("Invalid input: Please enter a numeric value for the withdrawal.")
+
+        self.submit_button = ctk.CTkButton(self, text='Submit', command=submit_withdraw)
         self.submit_button.pack(pady=10)
 
-        self.back_button = ctk.CTkEntry(self, text="Back", command = self.Accounts())
+        self.back_button = ctk.CTkButton(self, text="Back", command=self.Accounts)
         self.back_button.pack(pady=10)
-
-
 
 app = App()
 app.mainloop()
