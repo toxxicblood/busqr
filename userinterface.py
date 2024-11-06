@@ -5,6 +5,7 @@ import csv
 from cryptography.hazmat.primitives import constant_time
 import shortuuid
 import crypt_data
+import user_account
 
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("dark-blue")
@@ -203,13 +204,56 @@ class App(ctk.CTk):
         self.success_label.pack(pady=20)
 
         self.hello_user = ctk.CTkLabel(self, text = f'Hello {self.username}')
-        self.hello_user.pack(pady=20)
+        self.hello_user.pack(pady=10)
+
+        self.usr_acct = user_account.User_Account(self.user_id)
+        self.usr_acct.add_account()
+
+        self.balance = ctk.CTkLabel(self, text =f"Balance:{self.usr_acct.get_balance()}")
+        self.balance.pack(pady=10)
+        
+        self.deposit = ctk.CTkButton(self, text="Deposit", command =self.depositor)
+        self.deposit.pack(pady=10)
+
+        self.withdraw = ctk.CTkButton(self, text="Withdraw", command =self.withdrawer)
+        self.withdraw.pack(pady=10)
+
+
+        self.remove_acct = ctk.CTkButton(self, text =  'Remove Account', command=self.usr_acct.remove_accounts())
+        self.remove_acct.pack(pady=10)
+
+
 
         self.logout_button = ctk.CTkButton(self, text='Logout', command=self.login)
         self.logout_button.pack(pady=20)
 
         # Additional functionality for user accounts can be added here
 
+    def depositor(self):
+        self.clear_page()
+        self.input_ammount = ctk.CTkEntry(self, placeholder_text="Enter Ammount:",corner_radius=10 )
+        self.input_ammount.pack(pady=10)
+
+        self.submit_button = ctk.CTkEntry(self, text ='Submit', 
+                                          command = self.usr_acct.deposit(self.input_ammount.get().strip()))
+        self.submit_button.pack(pady=10)
+
+        self.back_button = ctk.CTkEntry(self, text="Back", command = self.Accounts())
+        self.back_button.pack(pady=10)
+
+
+    def withdrawer(self):
+        self.clear_page()
+
+        self.input_ammount = ctk.CTkEntry(self, placeholder_text="Enter Ammount:",corner_radius=10 )
+        self.input_ammount.pack(pady=10)
+
+        self.submit_button = ctk.CTkEntry(self, text ='Submit', 
+                                          command = self.usr_acct.withdraw(self.input_ammount.get().strip()))
+        self.submit_button.pack(pady=10)
+
+        self.back_button = ctk.CTkEntry(self, text="Back", command = self.Accounts())
+        self.back_button.pack(pady=10)
 
 
 
