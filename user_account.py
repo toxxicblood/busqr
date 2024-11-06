@@ -2,34 +2,31 @@ import csv
 import os
 
 class User_Account:
-    def __init__(self, uid, filename="accounts.csv"):
+    def __init__(self, uid, filename="accounts.csv", auto_add=True):
         self.filename = filename
         self.uid = uid
         self.accounts = self.load_accounts()
         
-        # Automatically add the account if uid is not found
-        if self.uid not in self.accounts:
+        if auto_add and self.uid not in self.accounts:
             self.add_account(balance=0)  # Default balance is 0
 
     def load_accounts(self):
         accounts = {}
-        # Check if the CSV file exists
         if os.path.exists(self.filename):
-            with open(self.filename, mode='r', newline='') as f:
+            with open(self.filename, mode="r", newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    accounts[row['uid']] = float(row['balance'])  # Convert balance to float
+                    accounts[row["uid"]] = float(row["balance"])
         else:
-            # Create a new CSV file with the header if it doesn't exist
-            with open(self.filename, mode='w', newline='') as f:
+            with open(self.filename, mode="w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(['uid', 'balance'])  # Write header
+                writer.writerow(["uid", "balance"])
         return accounts
 
     def save_accounts(self):
-        with open(self.filename, mode='w', newline='') as f:
+        with open(self.filename, mode="w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(['uid', 'balance'])  # Write header
+            writer.writerow(["uid", "balance"])
             for uid, balance in self.accounts.items():
                 writer.writerow([uid, balance])
 
@@ -49,50 +46,48 @@ class User_Account:
             raise ValueError(f"No account found for {self.uid}")
 
     def get_balance(self):
+        # Explicitly return None if the user does not exist in the accounts
         return self.accounts.get(self.uid, None)
 
     def update_balance(self, new_balance):
         if self.uid in self.accounts:
             self.accounts[self.uid] = new_balance
-            self.save_accounts()  # Save changes to CSV
+            self.save_accounts()
         else:
             print(f"Uid:{self.uid} not found, cannot update balance")
 
     def deposit(self, amount):
         try:
-            amount = int(amount)  # Convert to integer
+            amount = float(amount)
+            if amount <= 0:
+                raise ValueError("Deposit amount must be positive")
             if self.uid not in self.accounts:
                 raise ValueError(f"No account found for {self.uid}")
-            if amount > 0:
-                self.accounts[self.uid] += amount
-                print(f"Amount: {amount} deposited to account successfully. New balance: {self.accounts[self.uid]}")
-                self.save_accounts()  # Save changes to CSV
-            else:
-                print("Invalid deposit amount")
-        except ValueError:
-            print("Invalid input: Please enter a numeric value for the deposit.")
+            
+            self.accounts[self.uid] += amount
+            print(f"Amount: {amount} deposited to account successfully. New balance: {self.accounts[self.uid]}")
+            self.save_accounts()
+        except ValueError as e:
+            print(f"Invalid input: {e}")
+            raise
 
     def withdraw(self, amount):
         try:
-            amount = int(amount)  # Convert to integer
-            if self.uid not in self.accounts:
-                print("UID not found")
-                return
+            amount = float(amount)
             if amount <= 0:
-                print("Invalid withdrawal amount")
-                return
-
-            if self.accounts[self.uid] >= amount:
-                self.accounts[self.uid] -= amount
-                print(f"Amount {amount} withdrawn. New balance: {self.accounts[self.uid]}")
-                self.save_accounts()  # Save changes to CSV
-            else:
-                print("Insufficient balance")
-        except ValueError:
-            print("Invalid input: Please enter a numeric value for the withdrawal.")
+                raise ValueError("Withdrawal amount must be positive")
+            if self.uid not in self.accounts:
+                raise ValueError(f"No account found for {self.uid}")
+            
+            if self.accounts[self.uid] < amount:
+                raise ValueError("Insufficient balance")
+            
+            self.accounts[self.uid] -= amount
+            print(f"Amount {amount} withdrawn. New balance: {self.accounts[self.uid]}")
+            self.save_accounts()
+        except ValueError as e:
+            print(f"Invalid input: {e}")
+            raise
 
     def check_account(self):
-        if self.uid not in self.accounts:
-            print(f"No account found for {self.uid}")
-            return False
-        return True
+        return self.uid in self.accounts

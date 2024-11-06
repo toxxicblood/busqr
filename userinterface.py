@@ -54,7 +54,7 @@ class App(ctk.CTk):
         self.data_input()
 
     def data_input(self):
-        self .clear_page()
+        self.clear_page()
         self.name_entry = ctk.CTkEntry(self, placeholder_text="Name:", corner_radius=10)
         self.name_entry.pack(pady=20)
 
@@ -108,7 +108,7 @@ class App(ctk.CTk):
         self.popup()
 
     def popup(self):
-        self.submit_button.configure(text='Confirm Registration', command=self.add_user)
+        self.submit_button.configure(text="Confirm Registration", command=self.add_user)
         self.back_button.configure(command=self.data_input)
 
     def add_user(self):
@@ -125,26 +125,40 @@ class App(ctk.CTk):
         encrypted_password = self.crypt.encrypt(self.password_entry.get())
         encrypted_userID = self.crypt.encrypt(shortuuid.uuid())
 
-        with open(csv_file_path, mode="a", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=header)
-            writer.writerow(
-                {
-                    "username": encrypted_username,
-                    "email": encrypted_email,
-                    "password": encrypted_password,
-                    "userID": encrypted_userID,
-                }
-            )
+        # Check for existing email
+        email_exists = False
+        with open(csv_file_path, mode="r", newline="") as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row["email"] == encrypted_email:
+                    email_exists = True
+                    break
 
-        print("User  added to CSV:")  # Debugging line
-        #print(f"Username: {encrypted_username}, Email: {encrypted_email}, Password: {encrypted_password}, UserID: {encrypted_userID}")  # Debugging line
+        if email_exists:
+            print("Email is already in use.")
+        else:
+            # If the email does not exist, add the user
+            with open(csv_file_path, mode="a", newline="") as file:
+                writer = csv.DictWriter(file, fieldnames=header)
+                writer.writerow(
+                    {
+                        "username": encrypted_username,
+                        "email": encrypted_email,
+                        "password": encrypted_password,
+                        "userID": encrypted_userID,
+                    }
+                )
+            print("User  added to CSV:")    # Debugging line
+        # print(f"Username: {encrypted_username}, Email: {encrypted_email}, Password: {encrypted_password}, UserID: {encrypted_userID}")  # Debugging line
 
         self.login()
 
     def login(self):
         self.clear_page()
 
-        self.email_entry = ctk.CTkEntry(self, placeholder_text="Email:", corner_radius=10)
+        self.email_entry = ctk.CTkEntry(
+            self, placeholder_text="Email:", corner_radius=10
+        )
         self.email_entry.pack(pady=20)
 
         self.password_entry = ctk.CTkEntry(
@@ -152,9 +166,7 @@ class App(ctk.CTk):
         )
         self.password_entry.pack(pady=20)
 
-        self.submit_button = ctk.CTkButton(
-            self, text="Submit", command=self.login_user
-        )
+        self.submit_button = ctk.CTkButton(self, text="Submit", command=self.login_user)
         self.submit_button.pack(pady=20)
 
         self.back_button = ctk.CTkButton(self, text="Back", command=self.launch_user)
@@ -163,8 +175,9 @@ class App(ctk.CTk):
     def login_user(self):
         if not self.email_entry.get():
             self.email_entry.configure(
-                text_color='#F31604',
-                placeholder_text_color="#F31604", fg_color=("#F61B09", "#383838")
+                text_color="#F31604",
+                placeholder_text_color="#F31604",
+                fg_color=("#F61B09", "#383838"),
             )
             raise ValueError("Input email")
 
@@ -179,18 +192,19 @@ class App(ctk.CTk):
             reader = csv.DictReader(file)
             for row in reader:
                 decrypted_email = self.crypt.decrypt(row["email"])
-                
+
                 if decrypted_email is not None:
                     user_data[decrypted_email] = row
-                
 
         input_value = self.email_entry.get()
         user = user_data.get(input_value)
         if user:
             user_password = self.crypt.decrypt(user["password"])
-            if user_password is not None and constant_time.bytes_eq(self.password_entry.get().encode(), user_password.encode()):
+            if user_password is not None and constant_time.bytes_eq(
+                self.password_entry.get().encode(), user_password.encode()
+            ):
                 self.user_id = self.crypt.decrypt(user["userID"])
-                self.username=  self.crypt.decrypt(row["username"])
+                self.username = self.crypt.decrypt(row["username"])
                 self.Accounts()  # Call the Accounts method
             else:
                 print("Password does not match.")
@@ -200,16 +214,18 @@ class App(ctk.CTk):
     def Accounts(self):
         self.clear_page()
 
-        self.success_label = ctk.CTkLabel(self, text='Login successful')
+        self.success_label = ctk.CTkLabel(self, text="Login successful")
         self.success_label.pack(pady=20)
 
-        self.hello_user = ctk.CTkLabel(self, text=f'Hello {self.username}')
+        self.hello_user = ctk.CTkLabel(self, text=f"Hello {self.username}")
         self.hello_user.pack(pady=10)
 
         self.usr_acct = user_account.User_Account(self.user_id)
         self.usr_acct.add_account()
 
-        self.balance = ctk.CTkLabel(self, text=f"Balance: {self.usr_acct.get_balance()}")
+        self.balance = ctk.CTkLabel(
+            self, text=f"Balance: {self.usr_acct.get_balance()}"
+        )
         self.balance.pack(pady=10)
 
         self.deposit = ctk.CTkButton(self, text="Deposit", command=self.depositor)
@@ -218,17 +234,21 @@ class App(ctk.CTk):
         self.withdraw = ctk.CTkButton(self, text="Withdraw", command=self.withdrawer)
         self.withdraw.pack(pady=10)
 
-        self.remove_acct = ctk.CTkButton(self, text='Remove Account', command=self.usr_acct.remove_account)
+        self.remove_acct = ctk.CTkButton(
+            self, text="Remove Account", command=self.usr_acct.remove_account
+        )
         self.remove_acct.pack(pady=10)
 
-        self.logout_button = ctk.CTkButton(self, text='Logout', command=self.login)
+        self.logout_button = ctk.CTkButton(self, text="Logout", command=self.login)
         self.logout_button.pack(pady=20)
 
         # Additional functionality for user accounts can be added here
 
     def depositor(self):
         self.clear_page()
-        self.input_amount = ctk.CTkEntry(self, placeholder_text="Enter Amount:", corner_radius=10)
+        self.input_amount = ctk.CTkEntry(
+            self, placeholder_text="Enter Amount:", corner_radius=10
+        )
         self.input_amount.pack(pady=10)
 
         def submit_deposit():
@@ -236,13 +256,11 @@ class App(ctk.CTk):
             if amount.isnumeric():  # Simple validation
                 self.usr_acct.deposit(float(amount))
                 self.Accounts()
-               # self.balance.configure(text=f"Balance: {self.usr_acct.get_balance()}")
+            # self.balance.configure(text=f"Balance: {self.usr_acct.get_balance()}")
             else:
                 print("Invalid input: Please enter a numeric value for the deposit.")
 
-            
-
-        self.submit_button = ctk.CTkButton(self, text='Submit', command=submit_deposit)
+        self.submit_button = ctk.CTkButton(self, text="Submit", command=submit_deposit)
         self.submit_button.pack(pady=10)
 
         self.back_button = ctk.CTkButton(self, text="Back", command=self.Accounts)
@@ -251,7 +269,9 @@ class App(ctk.CTk):
     def withdrawer(self):
         self.clear_page()
 
-        self.input_amount = ctk.CTkEntry(self, placeholder_text="Enter Amount:", corner_radius=10)
+        self.input_amount = ctk.CTkEntry(
+            self, placeholder_text="Enter Amount:", corner_radius=10
+        )
         self.input_amount.pack(pady=10)
 
         def submit_withdraw():
@@ -259,15 +279,16 @@ class App(ctk.CTk):
             if amount.isnumeric():  # Simple validation
                 self.usr_acct.withdraw(float(amount))
                 self.Accounts()
-                #self.balance.configure(text=f"Balance: {self.usr_acct.get_balance()}")
+                # self.balance.configure(text=f"Balance: {self.usr_acct.get_balance()}")
             else:
                 print("Invalid input: Please enter a numeric value for the withdrawal.")
 
-        self.submit_button = ctk.CTkButton(self, text='Submit', command=submit_withdraw)
+        self.submit_button = ctk.CTkButton(self, text="Submit", command=submit_withdraw)
         self.submit_button.pack(pady=10)
 
         self.back_button = ctk.CTkButton(self, text="Back", command=self.Accounts)
         self.back_button.pack(pady=10)
+
 
 app = App()
 app.mainloop()
