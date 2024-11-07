@@ -48,12 +48,6 @@ class App(ctk.CTk):
             widget.destroy()
 
     def register(self):
-        self.welcome_label.configure(
-            text="Please enter the following details to sign up"
-        )
-        self.data_input()
-
-    def data_input(self):
         self.clear_page()
         self.name_entry = ctk.CTkEntry(self, placeholder_text="Name:", corner_radius=10)
         self.name_entry.pack(pady=20)
@@ -97,7 +91,17 @@ class App(ctk.CTk):
             )
             raise ValueError("Input a correct email")
         else:
-            self.email_entry.configure(text_color="white")
+            # Check for existing email before proceeding to add user
+            encrypted_email = self.crypt.encrypt(self.email_entry.get())
+            if self.email_exists(encrypted_email):
+                self.email_entry.configure(
+                    text_color="#F31604", fg_color=("#F61B09", "#383838")
+                )
+                print("Error: An account with this email already exists.")
+                return  # Stop further processing and don't proceed to add the user
+
+            else:
+                self.email_entry.configure(text_color="white")
 
         if not self.password_entry.get():
             self.password_entry.configure(
@@ -105,11 +109,21 @@ class App(ctk.CTk):
             )
             raise ValueError("Input a password")
 
-        self.popup()
-
-    def popup(self):
         self.submit_button.configure(text="Confirm Registration", command=self.add_user)
-        self.back_button.configure(command=self.data_input)
+        self.back_button.configure(command=self.register)
+
+
+    def email_exists(self, encrypted_email):
+        csv_file_path = "Users.csv"
+        if os.path.exists(csv_file_path) and os.path.getsize(csv_file_path) > 0:
+            with open(csv_file_path, mode="r", newline="") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    decrypted_email = self.crypt.decrypt(row["email"])  # Decrypt the email in the CSV
+                    if decrypted_email == self.email_entry.get():  # Compare decrypted email
+                        return True
+        return False
+
 
     def add_user(self):
         csv_file_path = "Users.csv"
@@ -125,30 +139,19 @@ class App(ctk.CTk):
         encrypted_password = self.crypt.encrypt(self.password_entry.get())
         encrypted_userID = self.crypt.encrypt(shortuuid.uuid())
 
-        # Check for existing email
-        email_exists = False
-        with open(csv_file_path, mode="r", newline="") as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                if row["email"] == encrypted_email:
-                    email_exists = True
-                    break
 
-        if email_exists:
-            print("Email is already in use.")
-        else:
-            # If the email does not exist, add the user
-            with open(csv_file_path, mode="a", newline="") as file:
-                writer = csv.DictWriter(file, fieldnames=header)
-                writer.writerow(
-                    {
-                        "username": encrypted_username,
-                        "email": encrypted_email,
-                        "password": encrypted_password,
-                        "userID": encrypted_userID,
-                    }
-                )
-            print("User  added to CSV:")    # Debugging line
+        # add user since email doesnt exist
+        with open(csv_file_path, mode="a", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=header)
+            writer.writerow(
+                {
+                    "username": encrypted_username,
+                    "email": encrypted_email,
+                    "password": encrypted_password,
+                    "userID": encrypted_userID,
+                }
+            )
+        print("User  added to CSV:")    # Debugging line
         # print(f"Username: {encrypted_username}, Email: {encrypted_email}, Password: {encrypted_password}, UserID: {encrypted_userID}")  # Debugging line
 
         self.login()
@@ -188,14 +191,17 @@ class App(ctk.CTk):
             raise ValueError("Input password")
 
         user_data = {}
-        with open("Users.csv") as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                decrypted_email = self.crypt.decrypt(row["email"])
+        try:
+            with open("Users.csv") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    decrypted_email = self.crypt.decrypt(row["email"])
 
-                if decrypted_email is not None:
-                    user_data[decrypted_email] = row
-
+                    if decrypted_email is not None:
+                        user_data[decrypted_email] = row
+        except FileNotFoundError:
+            self.register()
+        
         input_value = self.email_entry.get()
         user = user_data.get(input_value)
         if user:
@@ -210,6 +216,7 @@ class App(ctk.CTk):
                 print("Password does not match.")
         else:
             print("User  not found.")
+            self.register()
 
     def Accounts(self):
         self.clear_page()
