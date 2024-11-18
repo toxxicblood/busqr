@@ -17,16 +17,43 @@ class App(ctk.CTk):
 
         self.title("BusQr")
         self.geometry("600x500")
+        self.configure(bg="800080")
         self.crypt = crypt_data.DataEncryptor()
         self.startapp()
-
+#
     def startapp(self):
         self.clear_page()
-        self.bus_button = ctk.CTkButton(self, text="Bus")
+        self.bus_button = ctk.CTkButton(self, text="Bus",command = self.launch_bus)
         self.bus_button.pack(pady=20, padx=20)
         self.user_button = ctk.CTkButton(self, text="User ", command=self.launch_user)
         self.user_button.pack(pady=20)
 
+
+    def launch_bus(self):
+        self.clear_page()
+        self.welcome_label = ctk.CTkLabel(self, text="Karibu Pilot")
+        self.welcome_label.pack(pady=20)
+
+        self.login_button = ctk.CTkButton(self, text="Login to bus account", command=self.bus_login)
+        self.login_button.pack(pady=20)
+
+        self.register_button = ctk.CTkButton(
+            self, text="Register a new bus or taxi", command=self.bus_register
+        )
+        self.register_button.pack(pady=20)
+
+        self.back_button = ctk.CTkButton(self, text="Back", command=self.startapp)
+        self.back_button.pack(pady=20)
+
+    def bus_register(self):
+        self.clear_page()
+        self.label = ctk.CTkLabel(self, text="Enter the following details to register.")
+        self.label.pack(pady=20)
+
+
+    def bus_login(self):
+        pass
+        
     def launch_user(self):
         self.clear_page()
         self.welcome_label = ctk.CTkLabel(self, text="Karibu User")
@@ -112,7 +139,6 @@ class App(ctk.CTk):
         self.submit_button.configure(text="Confirm Registration", command=self.add_user)
         self.back_button.configure(command=self.register)
 
-
     def email_exists(self, encrypted_email):
         csv_file_path = "Users.csv"
         if os.path.exists(csv_file_path) and os.path.getsize(csv_file_path) > 0:
@@ -123,7 +149,6 @@ class App(ctk.CTk):
                     if decrypted_email == self.email_entry.get():  # Compare decrypted email
                         return True
         return False
-
 
     def add_user(self):
         csv_file_path = "Users.csv"
