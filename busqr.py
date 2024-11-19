@@ -8,6 +8,9 @@ import crypt_data
 import user_account
 import customtkinter as ctk
 from datetime import datetime
+from PIL import Image, ImageTk
+from pyzbar.pyzbar import decode
+from tkinter import filedialog, messagebox
 from cryptography.hazmat.primitives import constant_time
 from validator_collection import checkers, validators, errors
 
@@ -22,6 +25,7 @@ USER_FILE = 'Users.csv'
 BOOKING_FILE = 'Bookings.csv'
 VEHICLE_FILE = 'Vehicles.json'
 DRIVER_FILE = 'Drivers.json'
+CSV_FILE = "Transactions.csv"
 
 class BusQr(ctk.CTk):
     def __init__(self):
@@ -224,12 +228,23 @@ class BusQr(ctk.CTk):
         self.qr_code_generator_tab()
 
     def qr_code_generator_tab(self):
-        qr_gen_tab = self.tabview.add("QR Code Generator")
-        qr_gen_tab.configure(fg_color=self.secondary_color)
+        self.generator_tab = self.tabview.add("QR Code Generator")
+        self.generator_tab.configure(fg_color=self.secondary_color)
 
-        
+        self.initialize_csv()
 
+        self.generator_frame = ctk.CTkFrame(self.generator_tab)
+        self.generator_frame.pack(fill="both", expand=True,padx=10, pady=10)
 
+        ctk.CTkLabel(self.generator_frame, text="Driver's Phone Number:").pack(pady=10)
+        self.phone_entry = ctk.CTkEntry(self.generator_frame, placeholder_text="Enter Phone Number")
+        self.phone_entry.pack(pady=5)
+
+        self.generate_button = ctk.CTkButton(self.generator_frame, text="Generate QR Code", command=self.generate_qr)
+        self.generate_button.pack(pady=10)
+
+        self.qr_image_label = ctk.CTkLabel(self.generator_frame, text="Generated QR Code will appear here")
+        self.qr_image_label.pack(pady=10)
 
     def user(self):
         self.clear_page()
@@ -428,6 +443,56 @@ class BusQr(ctk.CTk):
 
     def validate_contact(self, contact):
         return bool(re.match(r'^\+?[0-9]{10,15}$', contact))  # Contact must be a valid phone number
+
+    def initialize_csv(self):
+        if not os.path.exists(CSV_FILE):
+            with open(CSV_FILE, mode="w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(["Phone Number", "Amount", "Timestamp"])
+
+    # Save transaction to CSV
+    def save_transaction(self,phone_number, amount):
+        from datetime import datetime
+        with open(CSV_FILE, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([phone_number, amount, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+
+    # Fetch transaction history
+    def fetch_transactions(self):
+        if not os.path.exists(CSV_FILE):
+            return []
+        with open(CSV_FILE, mode="r") as file:
+            reader = csv.reader(file)
+            next(reader)  # Skip header
+            return list(reader)
+
+    def generate_qr(self):
+        phone_number = self.phone_entry.get().strip()
+        if not phone_number:
+            messagebox.showerror("Error", "Please enter a phone number")
+            return
+        
+        # Generate and display the QR code
+        img_path = self.generate_qr_code(phone_number)
+        img = Image.open(img_path)
+        img.thumbnail((200, 200))
+        img_tk = ImageTk.PhotoImage(img)
+        self.qr_image_label.configure(image=img_tk, text="")
+        self.qr_image_label.image = img_tk
+        messagebox.showinfo("Success", f"QR Code generated and saved as {img_path}")
+
+    def generate_qr_code(phone_number):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4
+        )
+        qr.add_data(phone_number)
+        qr.make(fit=True)
+        img = qr.make_image(fill="black", back_color="white")
+        img.save("driver_qr_code.png")
+        return "driver_qr_code.png"
     
     def save_user(self, username, email, password, file_path):
         with open(file_path, 'r+') as f:
@@ -532,10 +597,51 @@ class BusQr(ctk.CTk):
 
 
     def add_scan_tab(self):#to do
-        scan_tab = self.tabview.add("Scan n Pay")
-        scan_tab.configure(fg_color=self.secondary_color)
+        scanner_tab = self.tabview.add("Scan n Pay")
+        scanner_tab.configure(fg_color=self.secondary_color)
+        # Scanner Tab
+        self.scanner_frame = ctk.CTkFrame(self.scanner_tab)
+        self.scanner_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.back_button("Log Out",scan_tab,self.startapp)
+        self.upload_button = ctk.CTkButton(self.scanner_frame, text="Upload QR Code to Scan", command=self.scan_qr)
+        self.upload_button.pack(pady=10)
+
+        self.result_label = ctk.CTkLabel(self.scanner_frame, text="Scanned Information Will Appear Here", wraplength=500)
+        self.result_label.pack(pady=10)
+
+        self.history_button = ctk.CTkButton(self.scanner_frame, text="Show Transaction History", command=self.show_history)
+        self.history_button.pack(pady=10)
+
+        self.back_button("Log Out",scanner_tab,self.startapp)
+
+    def scan_qr(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg")])
+        if not file_path:
+            return
+        
+        img = Image.open(file_path)
+        decoded_objects = decode(img)
+
+        if decoded_objects:
+            phone_number = decoded_objects[0].data.decode("utf-8")
+            amount = messagebox.askstring("Amount", "Enter the payment amount:")
+
+            if amount:
+                self.save_transaction(phone_number, amount)
+                self.result_label.configure(text=f"Transaction Saved:\nPhone: {phone_number}\nAmount: {amount}")
+        else:
+            messagebox.showerror("Error", "No QR Code detected in the image")
+
+    # Show Transaction History
+    def show_history(self):
+        history = self.fetch_transactions()
+        if history:
+            history_text = "\n".join([f"Phone: {row[0]}, Amount: {row[1]}, Date: {row[2]}" for row in history])
+        else:
+            history_text = "No transactions recorded yet."
+        messagebox.showinfo("Transaction History", history_text)
+
+
 
 
     def add_bookings_tab(self):
